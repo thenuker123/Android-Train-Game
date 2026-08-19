@@ -1,0 +1,15 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!129 &1
+PlayerSettings:
+  m_ObjectHideFlags: 0
+  companyName: DefaultCompany
+  productName: DerailValleyMobile
+  defaultInterfaceOrientation: 3
+  renderingAPI_Android:
+  - 1
+  - 2
+  m_ActiveColorSpace: 1
+  AndroidTargetArchitecture: 3
+  AndroidMinSdkVersion: 29
+  AndroidTargetSdkVersion: 34
