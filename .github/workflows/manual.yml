@@ -1,0 +1,16 @@
+name: Get Unity Activation File
+on: [workflow_dispatch]
+jobs:
+  get-alf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Request Activation File
+        uses: game-ci/unity-request-activation-file@v4
+        id: alf
+      - name: Upload Activation File
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityRequest
+          path: ${{ steps.alf.outputs.filePath }}
+"
