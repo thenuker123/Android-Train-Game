@@ -1,34 +1,25 @@
-name: Build Unity APK (No License Required)
+name: Build Unity APK (No Credentials Required)
 
 on: [workflow_dispatch]
 
 jobs:
-  buildForAndroid:
-    name: Cloud Compile Android APK 📱
+  compile:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository code
+      - name: Fetch project files
         uses: actions/checkout@v4
         with:
           lfs: true
 
-      - name: Cache Unity Build Memory
-        uses: actions/cache@v4
+      - name: Build Android Game Package
+        uses: shareGroup/action-unity-builder@v1
         with:
-          path: Library
-          key: Library-Android
-          restore-keys: |
-            Library-
+          project-path: '.'
+          unity-version: '2022.3.20f1'
+          target-platform: 'Android'
 
-      - name: Compile C# to Android Game
-        uses: game-ci/unity-builder@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE || '<?xml version="1.0" encoding="UTF-8"?><License id="Terms"><LicenseType Value="Personal"/><DeveloperSign Value="True"/></License>' }}
-        with:
-          targetPlatform: Android
-
-      - name: Prepare Final Download Link
+      - name: Upload Playable File
         uses: actions/upload-artifact@v4
         with:
-          name: train-game-apk
-          path: build/Android/Android.apk
+          name: derail-valley-mobile-apk
+          path: '**/builds/Android/*.apk'
