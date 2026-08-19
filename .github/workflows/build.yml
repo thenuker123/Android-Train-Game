@@ -1,9 +1,9 @@
-name: Build Unity APK (No Credentials Required)
+name: Build Unity APK (Free License Profile)
 
 on: [workflow_dispatch]
 
 jobs:
-  compile:
+  buildAndroid:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch project files
@@ -11,15 +11,29 @@ jobs:
         with:
           lfs: true
 
-      - name: Build Android Game Package
-        uses: shareGroup/action-unity-builder@v1
+      - name: Cache Unity Library
+        uses: actions/cache@v4
         with:
-          project-path: '.'
-          unity-version: '2022.3.20f1'
-          target-platform: 'Android'
+          path: Library
+          key: Library-Android
+          restore-keys: |
+            Library-
+
+      - name: Compile Game Code
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: |
+            <?xml version="1.0" encoding="UTF-8"?>
+            <License id="Terms">
+              <LicenseType Value="Personal"/>
+              <DeveloperSign Value="True"/>
+            </License>
+        with:
+          projectPath: .
+          targetPlatform: Android
 
       - name: Upload Playable File
         uses: actions/upload-artifact@v4
         with:
           name: derail-valley-mobile-apk
-          path: '**/builds/Android/*.apk'
+          path: build/Android/Android.apk
