@@ -24,6 +24,7 @@ public class TrainController : MonoBehaviour
     public bool isDerailed => IsDerailed;
     public float CurrentSpeed => _currentSpeed;
     public int CurrentWaypointIndex => _currentWaypointIndex;
+    public TrackManager CurrentTrackManager => trackManager;
 
     public event Action<int, int, int> WaypointTransitioned;
 
@@ -31,6 +32,7 @@ public class TrainController : MonoBehaviour
     private float _currentSpeed;
     private int _currentWaypointIndex;
     private float _waypointReachDistanceSqr;
+    private LocomotiveStats _locomotiveStats;
 
     private void Awake()
     {
@@ -41,6 +43,8 @@ public class TrainController : MonoBehaviour
         {
             trackManager = FindObjectOfType<TrackManager>();
         }
+
+        _locomotiveStats = GetComponent<LocomotiveStats>();
     }
 
     private void Start()
@@ -87,9 +91,25 @@ public class TrainController : MonoBehaviour
         Debug.LogError($"Train derailed: {reason}");
     }
 
+    public void SetTrackManager(TrackManager nextTrackManager, bool snapToClosestWaypoint = true)
+    {
+        if (nextTrackManager == null || nextTrackManager.WaypointCount == 0)
+        {
+            return;
+        }
+
+        trackManager = nextTrackManager;
+
+        if (snapToClosestWaypoint)
+        {
+            _currentWaypointIndex = trackManager.GetClosestWaypointIndex(_cachedTransform.position);
+        }
+    }
+
     private void UpdateSpeed(float deltaTime)
     {
-        float targetSpeed = currentThrottle * maxSpeed;
+        float torqueMultiplier = _locomotiveStats != null ? _locomotiveStats.CurrentTorqueMultiplier : 1f;
+        float targetSpeed = currentThrottle * maxSpeed * torqueMultiplier;
         _currentSpeed = Mathf.MoveTowards(_currentSpeed, targetSpeed, acceleration * deltaTime);
 
         if (Mathf.Abs(currentThrottle) < 0.001f)

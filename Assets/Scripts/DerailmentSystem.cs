@@ -6,7 +6,6 @@ using UnityEngine;
 public class DerailmentSystem : MonoBehaviour
 {
     [SerializeField] private TrainController trainController;
-    [SerializeField] private TrackManager trackManager;
 
     [Header("Derailment Rules")]
     [SerializeField, Range(0f, 180f)] private float sharpTurnAngle = 45f;
@@ -19,10 +18,6 @@ public class DerailmentSystem : MonoBehaviour
             trainController = FindObjectOfType<TrainController>();
         }
 
-        if (trackManager == null)
-        {
-            trackManager = FindObjectOfType<TrackManager>();
-        }
     }
 
     private void OnEnable()
@@ -43,14 +38,15 @@ public class DerailmentSystem : MonoBehaviour
 
     private void HandleWaypointTransition(int previousIndex, int currentIndex, int nextIndex)
     {
-        if (trainController == null || trackManager == null || trackManager.WaypointCount < 3 || trainController.IsDerailed)
+        TrackManager currentTrack = trainController != null ? trainController.CurrentTrackManager : null;
+        if (trainController == null || currentTrack == null || currentTrack.WaypointCount < 3 || trainController.IsDerailed)
         {
             return;
         }
 
-        Transform previous = trackManager.GetWaypoint(previousIndex);
-        Transform current = trackManager.GetWaypoint(currentIndex);
-        Transform next = trackManager.GetWaypoint(nextIndex);
+        Transform previous = currentTrack.GetWaypoint(previousIndex);
+        Transform current = currentTrack.GetWaypoint(currentIndex);
+        Transform next = currentTrack.GetWaypoint(nextIndex);
 
         if (previous == null || current == null || next == null)
         {
