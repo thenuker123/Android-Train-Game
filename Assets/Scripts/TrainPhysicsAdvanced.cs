@@ -146,6 +146,40 @@ public class TrainPhysicsAdvanced : MonoBehaviour
         UpdateSlipVisuals();
     }
 
+    public virtual void ApplyPreset(TrainPresetData preset)
+    {
+        if (preset == null)
+        {
+            return;
+        }
+
+        locomotiveMassKg = Mathf.Max(1f, preset.mass);
+        maxTractiveEffortN = Mathf.Max(1000f, preset.maxTractiveEffort);
+        maxServiceBrakeForceN = Mathf.Max(1000f, preset.maxBrakingForce);
+
+        if (string.Equals(preset.vehicleType, "Passenger", StringComparison.OrdinalIgnoreCase))
+        {
+            brakePipeApplyRateKpaPerSecond = Mathf.Max(brakePipeApplyRateKpaPerSecond, 55f);
+            brakePipeReleaseRateKpaPerSecond = Mathf.Max(brakePipeReleaseRateKpaPerSecond, 60f);
+        }
+        else if (string.Equals(preset.vehicleType, "CargoWagon", StringComparison.OrdinalIgnoreCase))
+        {
+            brakePipeApplyRateKpaPerSecond = Mathf.Max(30f, brakePipeApplyRateKpaPerSecond * 0.8f);
+            brakePipeReleaseRateKpaPerSecond = Mathf.Max(35f, brakePipeReleaseRateKpaPerSecond * 0.8f);
+        }
+
+        if (string.Equals(preset.fuelType, "Electric", StringComparison.OrdinalIgnoreCase))
+        {
+            tractionMotorCoolingRate = Mathf.Max(tractionMotorCoolingRate, 14f);
+        }
+        else if (string.Equals(preset.fuelType, "Coal/Steam", StringComparison.OrdinalIgnoreCase))
+        {
+            tractionMotorHeatRate = Mathf.Max(tractionMotorHeatRate, 26f);
+        }
+
+        _wagonWeightDistributor?.ApplyPresetDefaults(preset);
+    }
+
     public void SetThrottle(float value)
     {
         currentThrottle = Mathf.Clamp(value, -1f, 1f);
@@ -328,8 +362,8 @@ public class TrainPhysicsAdvanced : MonoBehaviour
         float dynamicBrakeRatio = 0f;
         if (IsCircuitOperational(ElectricalCircuit.DynamicBrake) && motionSign != 0f)
         {
-            float throttleOpposition = Mathf.Clamp01((-currentThrottle * motionSign + 1f) * 0.5f);
-            dynamicBrakeRatio = throttleOpposition * 0.6f;
+            float opposingThrottle = Mathf.Clamp01(-currentThrottle * motionSign);
+            dynamicBrakeRatio = opposingThrottle * 0.6f;
         }
 
         float totalBrakeRatio = Mathf.Clamp01(serviceBrakeRatio + dynamicBrakeRatio);
