@@ -10,7 +10,7 @@ jobs:
     name: Execute Mobile Matrix Build
     runs-on: ubuntu-latest
     steps:
-      # 1. Clean environment room for dense mobile rendering packages
+      # 1. Clean environment room for mobile rendering packages
       - name: Free Up Android Cloud Storage space
         uses: jlumbroso/free-disk-space@v1.3.1
 
@@ -18,21 +18,22 @@ jobs:
       - name: Checkout Game Code
         uses: actions/checkout@v4
 
-      # 3. Handle heavy caching loops to ensure subsequent runs build fast
+      # 3. Handle heavy caching loops to ensure fast builds
       - name: Cache Unity Project Library Cache
         uses: actions/cache@v4
         with:
           path: Library
           key: Library-Android-${{ hashFiles('Assets/Scripts/**') }}
 
-      # 4. Fire the Game-CI engine container
+      # 4. Fire the Game-CI engine using Web Authentication parameters
       - name: Compile Unity Engine to Android APK
         uses: game-ci/unity-builder@v4
         env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: Android
-          androidExportType: androidPackage
+          androidExportType: apk
           buildMethod: BuildScript.PerformAndroidBuild
 
       # 5. Output file securely onto your profile for easy downloading
