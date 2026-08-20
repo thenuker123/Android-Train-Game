@@ -32,7 +32,7 @@ jobs:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           targetPlatform: Android
-          androidExportType: apk
+          androidExportType: androidPackage
           buildMethod: BuildScript.PerformAndroidBuild
 
       # 5. Output file securely onto your profile for easy downloading
