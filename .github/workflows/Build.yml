@@ -1,49 +1,43 @@
-#if UNITY_EDITOR
-using UnityEditor;
-using System.IO;
-using UnityEngine;
+name: Android Game Cloud Compiler 🤖
 
-public static class BuildScript
-{
-    public static void PerformAndroidBuild()
-    {
-        Debug.Log("[Cloud Build] Commencing internal programmatic android compiler routine...");
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
-        // 1. Gather all active maps/scenes configured for the project
-        string[] testScenes = { "Assets/Scenes/SampleScene.unity" }; 
+jobs:
+  buildAndroidGame:
+    name: Execute Mobile Matrix Build
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Clean environment room for dense mobile rendering packages
+      - name: Free Up Android Cloud Storage space
+        uses: jlumbroso/free-disk-space@v1.3.1
 
-        // 2. Establish target output directories
-        string outputDirectory = Path.Combine(Application.dataPath, "../build/Android");
-        if (!Directory.Exists(outputDirectory))
-        {
-            Directory.CreateDirectory(outputDirectory);
-        }
-        string targetFilePath = Path.Combine(outputDirectory, "DerailValleyMobile.apk");
+      # 2. Extract repository code blocks
+      - name: Checkout Game Code
+        uses: actions/checkout@v4
 
-        // 3. Configure deep compiler parameters matching Android specifications
-        BuildPlayerOptions options = new BuildPlayerOptions();
-        options.scenes = testScenes;
-        options.locationPathName = targetFilePath;
-        options.target = BuildTarget.Android;
-        options.options = BuildOptions.None;
+      # 3. Handle heavy caching loops to ensure subsequent runs build fast
+      - name: Cache Unity Project Library Cache
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-Android-${{ hashFiles('Assets/Scripts/**') }}
 
-        // Force Android platform parameters to render normal APK formats instead of app bundles (AAB)
-        EditorUserBuildSettings.androidBuildSubtarget = MobileTextureSubtarget.Generic;
-        EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
+      # 4. Fire the Game-CI engine container
+      - name: Compile Unity Engine to Android APK
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          targetPlatform: Android
+          androidExportType: apk
+          buildMethod: BuildScript.PerformAndroidBuild
 
-        // 4. Trigger structural build compilation engine execution
-        var compilationReport = BuildPipeline.BuildPlayer(options);
-        var constructionResult = compilationReport.summary.result;
-
-        if (constructionResult == UnityEditor.Build.Reporting.BuildResult.Succeeded)
-        {
-            Debug.Log($"[Cloud Build] Success! Target file package rendered cleanly at: {targetFilePath}");
-        }
-        else
-        {
-            Debug.LogError($"[Cloud Build] Compilation terminal error! Summary output state returned: {constructionResult}");
-            throw new System.Exception("Unity Headless Engine compilation aborted due to code errors.");
-        }
-    }
-}
-#endif
+      # 5. Output file securely onto your profile for easy downloading
+      - name: Package Playable Application File
+        uses: actions/upload-artifact@v4
+        with:
+          name: DerailValleyMobile-Alpha-APK
+          path: "build/Android/"
